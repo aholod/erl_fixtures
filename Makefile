@@ -13,3 +13,4 @@ release:
 test:
 	bin/rebar3 eunit
 
+.PHONY: test

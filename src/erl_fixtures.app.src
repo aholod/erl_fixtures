@@ -5,7 +5,9 @@
   {mod, { erl_fixtures_app, []}},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    erlydtl,
+    yamerl
    ]},
   {env,[]},
   {modules, []},
