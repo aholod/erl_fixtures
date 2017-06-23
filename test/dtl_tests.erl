@@ -12,13 +12,13 @@ dtl_test_() ->
   }.
 
 start() ->
-  % application:ensure_all_started(erl_fixtures),
+  application:ensure_all_started(yamerl),
+  application:set_env(erl_fixtures, fixtures_path, "test/fixtures"),
   ok.
 stop(_) ->
   ok.
 
 
 check_run(_) ->
-  application:set_env(erl_fixtures, fixtures_path, "test/fixtures"),
   Result = erl_fixtures:get_obj("users", dimon),
   [?_assertEqual(4, Result)].
