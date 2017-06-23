@@ -1,3 +1,5 @@
+---
+
 dimon:
-  name: dmitry
+  name: '{{ name }}'
   dacha: 1
