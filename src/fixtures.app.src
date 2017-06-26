@@ -1,12 +1,10 @@
-{application, erl_fixtures,
- [{description, "An OTP application"},
+{application, fixtures,
+ [{description, "An OTP library"},
   {vsn, "0.1.0"},
   {registered, []},
-  {mod, { erl_fixtures_app, []}},
   {applications,
    [kernel,
-    stdlib,
-    yamerl
+    stdlib
    ]},
   {env,[]},
   {modules, []},

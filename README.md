@@ -1,7 +1,7 @@
-erl_fixtures
+fixtures
 =====
 
-An OTP application
+An OTP library
 
 Build
 -----

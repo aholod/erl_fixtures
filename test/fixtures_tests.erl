@@ -1,8 +1,8 @@
--module(dtl_tests).
+-module(fixtures_tests).
 
 -include_lib("eunit/include/eunit.hrl").
 
-dtl_test_() ->
+fixtures_test_() ->
   {foreach,
    fun start/0,
    fun stop/1,
@@ -13,12 +13,13 @@ dtl_test_() ->
 
 start() ->
   application:ensure_all_started(yamerl),
-  application:set_env(erl_fixtures, fixtures_path, "test/fixtures"),
+  application:set_env(fixtures, fixtures_path, "test/fixtures"),
+  Fixtures = fixtures:load("test/fixtures"),
   ok.
 stop(_) ->
   ok.
 
 
 check_run(_) ->
-  Result = erl_fixtures:get_obj("users", dimon),
+  Result = fixtures:get_obj("users", dimon),
   [?_assertEqual(4, Result)].
