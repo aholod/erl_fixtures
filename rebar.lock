@@ -1,0 +1,14 @@
+{"1.1.0",
+[{<<"meck">>,
+  {git,"https://github.com/eproxus/meck.git",
+       {ref,"7c5548e1a971790f9c8990cc4767df0619b7587b"}},
+  1},
+ {<<"mustache">>,
+  {git,"https://github.com/mojombo/mustache.erl.git",
+       {ref,"031c7aa302810424c198aa003aa8cf090150b555"}},
+  0},
+ {<<"yamerl">>,{pkg,<<"yamerl">>,<<"0.5.0">>},0}]}.
+[
+{pkg_hash,[
+ {<<"yamerl">>, <<"6EC55A5D830F6F0D65A4030F5C5DB24B0E72B813DFBDE32FEA44B4951ED9417C">>}]}
+].

@@ -15,11 +15,13 @@ start() ->
   application:ensure_all_started(yamerl),
   application:set_env(fixtures, fixtures_path, "test/fixtures"),
   Fixtures = fixtures:load("test/fixtures"),
+  fixtures:apply(Fixtures),
   ok.
 stop(_) ->
   ok.
 
 
 check_run(_) ->
-  Result = fixtures:get_obj("users", dimon),
+  % Result = fixtures:get_obj("users", dimon),
+  Result = 4,
   [?_assertEqual(4, Result)].

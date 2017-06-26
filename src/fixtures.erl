@@ -1,7 +1,7 @@
 -module(fixtures).
 
 %% API exports
--export([load/1, get_obj/2, name/0]).
+-export([load/1, apply/1, name/0]).
 
 %%====================================================================
 %% API functions
@@ -9,28 +9,29 @@
 
 load(FixturesPath) ->
   {ok, Filenames} = file:list_dir(FixturesPath),
-  FixturesFiles = [ filename:join(FixturesPath, File) || File <- Filenames, filename:extension(File) =:= ".yml"],
-  erlang:display(FixturesFiles),
-  % Renders = [ mustache:render(fixtures, File) || File <- FixturesFiles],
-  R2 = mustache:render("test/fixtures/hosts.yml"),
-  erlang:display(R2),
-  R1 = mustache:render(fixtures, "test/fixtures/users.yml"),
-  erlang:display(R1),
-  ok.
-
-get_obj(Fixture, Obj) ->
-  {ok, Path} = application:get_env(fixtures, fixtures_path),
-  FixtureFilePath = lists:concat([Path, "/", Fixture, ".yml"]),
-  erlang:display(FixtureFilePath),
-  % {ok, RawData} = file:read_file(FixtureFilePath),
-  % Ctx = dict:from_list([]),
-  % TFun = mustache:compile(binary_to_list(RawData)),
-  Result = mustache:render(fixtures, FixtureFilePath),
-  % Yaml = binary_to_list(Result),
+  FixturesFiles = [{Filename, filename:join(FixturesPath, Filename)} || Filename <- Filenames, filename:extension(Filename) =:= ".yml"],
+  ReadedFiles = [{filename:basename(Filename, ".yml"), file:read_file(File)} || {Filename, File} <- FixturesFiles],
+  Compiles = [{Filename, mustache:compile(binary_to_list(Data))} || {Filename, {ok, Data}} <- ReadedFiles],
+  Renders = [{Filename, mustache:render(undefined, CompiledTemplate)} || {Filename, CompiledTemplate} <- Compiles],
+  Result = [{Filename, yamerl_constr:string(RenderedTemplate)} || {Filename, RenderedTemplate} <- Renders],
   erlang:display(Result),
-  Data = yamerl_constr:string(Result),
-  erlang:display(Data),
-  ok.
+  Result.
+
+apply(_Fixtures) ->
+  CS = "DSN=oraxe;UID=SSO;PWD=sso",
+  Options = [{scrollable_cursors, off}],
+  DisableConstraint =
+    "select 'alter table '||table_name||' disable constraint '||constraint_name||';' from user_constraints where constraint_type = 'R'",
+  EnableConstraints =
+    "select 'alter table '||table_name||' enable constraint '||constraint_name||';' from user_constraints where constraint_type = 'R'",
+  DelStmt = "delete from AS_USERS",
+
+  ok = odbc:start(),
+  {ok, Ref} = odbc:connect(CS, Options),
+  {_, _, ResultConstraints} = odbc:sql_query(Ref, DisableConstraint),
+  [odbc:sql_query(Ref, Query) || {Query} <- ResultConstraints],
+  Result = odbc:sql_query(Ref, DelStmt),
+  erlang:display(Result).
 
 name() -> "lala".
 
