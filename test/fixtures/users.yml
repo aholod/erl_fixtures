@@ -1,5 +1,0 @@
----
-
-dimon:
-  name: '{{ name }}'
-  dacha: 1
