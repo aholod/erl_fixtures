@@ -8,15 +8,10 @@
 %%====================================================================
 
 load(FixturesPath) ->
+  code:add_patha(FixturesPath),
   yamerl_app:set_param(node_mods, [yamerl_node_erlang_atom]),
   {ok, Filenames} = file:list_dir(FixturesPath),
-  FixturesFiles = [{Filename, filename:join(FixturesPath, Filename)} || Filename <- Filenames, filename:extension(Filename) =:= ".yml"],
-  ReadedFiles = [{filename:basename(Filename, ".yml"), file:read_file(File)} || {Filename, File} <- FixturesFiles],
-  Compiles = [{Filename, mustache:compile(binary_to_list(Data))} || {Filename, {ok, Data}} <- ReadedFiles],
-  Renders = [{Filename, mustache:render(undefined, CompiledTemplate)} || {Filename, CompiledTemplate} <- Compiles],
-  Result = [{Filename, yamerl_constr:string(RenderedTemplate, [{erlang_atom_autodetection, true}])} || {Filename, RenderedTemplate} <- Renders],
-  erlang:display(Result),
-  Result.
+  [read_fixture(FixturesPath, Filename) || Filename <- Filenames, filename:extension(Filename) =:= ".yml"].
 
 apply(Fixtures) ->
   CS = "DSN=oraxe;UID=SSO;PWD=sso",
@@ -48,3 +43,18 @@ apply(Fixtures) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
+
+read_fixture(Filepath, Filename) ->
+  Fullname = filename:join(Filepath, Filename),
+  Module = list_to_atom(filename:basename(Filename, ".yml")),
+  Render = case code:load_file(Module) of
+    {module, Module} ->
+      mustache:render(Module, Fullname, []);
+    _ ->
+      {_, Content} = file:read_file(Fullname),
+      Compiled = mustache:compile(binary_to_list(Content)),
+      mustache:render(undefined, Compiled)
+  end,
+  {Module, yamerl_constr:string(Render, [{erlang_atom_autodetection, true}])}.
+
+
