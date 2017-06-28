@@ -15,7 +15,6 @@ fixtures_test_() ->
 start() ->
   application:ensure_all_started(yamerl),
   Fixtures = fixtures:load("test/fixtures"),
-  erlang:display(Fixtures),
   fixtures:apply(Fixtures),
   ok.
 stop(_) ->

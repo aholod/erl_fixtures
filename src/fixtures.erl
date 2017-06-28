@@ -36,9 +36,9 @@ apply(Fixtures) ->
     end,
     [], Fixtures),
 
-  Queries = [sqerl:sql({insert, list_to_atom(Table), Values}, true) || {Table, Values} <- FixturesTransformed],
-  InsertResult = [odbc:sql_query(Ref, binary_to_list(Query)) || Query <- Queries],
-  erlang:display(InsertResult).
+  Queries = [sqerl:sql({insert, Table, Values}, true) || {Table, Values} <- FixturesTransformed],
+  % [erlang:display(binary_to_list(Q)) || Q <- Queries],
+  [odbc:sql_query(Ref, binary_to_list(Query)) || Query <- Queries].
 
 %%====================================================================
 %% Internal functions
