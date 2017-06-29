@@ -16,17 +16,16 @@ load(FixturesPath) ->
 apply(Fixtures) ->
   CS = "DSN=oraxe;UID=SSO;PWD=sso",
   Options = [{scrollable_cursors, off}, {auto_commit, on}],
-  DisableConstraint =
+  DisableConstraintsGen =
     "select 'alter table '||table_name||' disable constraint '||constraint_name||';' from user_constraints where constraint_type = 'R'",
-  EnableConstraints =
+  EnableConstraintsGen =
     "select 'alter table '||table_name||' enable constraint '||constraint_name||';' from user_constraints where constraint_type = 'R'",
-  DelStmt = "delete from AS_USERS",
 
   ok = odbc:start(),
   {ok, Ref} = odbc:connect(CS, Options),
-  {_, _, ResultConstraints} = odbc:sql_query(Ref, DisableConstraint),
-  [odbc:sql_query(Ref, Query) || {Query} <- ResultConstraints],
-  odbc:sql_query(Ref, DelStmt),
+  {_, _, DisableConstraints} = odbc:sql_query(Ref, DisableConstraintsGen),
+  {_, _, EnableConstraints} = odbc:sql_query(Ref, EnableConstraintsGen),
+  [odbc:sql_query(Ref, Query) || {Query} <- DisableConstraints],
 
   FixturesTransformed = lists:foldl(
     fun(Elem, Acc)->
@@ -36,9 +35,12 @@ apply(Fixtures) ->
     end,
     [], Fixtures),
 
+  [odbc:sql_query(Ref, lists:append("truncate table ", atom_to_list(Table))) || {Table, _} <- FixturesTransformed],
   Queries = [sqerl:sql({insert, Table, Values}, true) || {Table, Values} <- FixturesTransformed],
   % [erlang:display(binary_to_list(Q)) || Q <- Queries],
-  [odbc:sql_query(Ref, binary_to_list(Query)) || Query <- Queries].
+  [odbc:sql_query(Ref, binary_to_list(Query)) || Query <- Queries],
+  [odbc:sql_query(Ref, Query) || {Query} <- EnableConstraints].
+
 
 %%====================================================================
 %% Internal functions
@@ -56,5 +58,4 @@ read_fixture(Filepath, Filename) ->
       mustache:render(undefined, Compiled)
   end,
   {Module, yamerl_constr:string(Render, [{erlang_atom_autodetection, true}])}.
-
 
