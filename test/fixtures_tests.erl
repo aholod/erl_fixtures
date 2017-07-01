@@ -13,7 +13,11 @@ fixtures_test_() ->
   }.
 
 start() ->
-  application:ensure_all_started(yamerl),
+  lager:start(),
+  lager:set_loglevel(lager_console_backend, debug),
+  application:ensure_all_started(lager),
+
+
   Fixtures = fixtures:load("test/fixtures"),
   fixtures:apply(Fixtures),
   ok.

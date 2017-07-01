@@ -9,9 +9,11 @@
 
 load(FixturesPath) ->
   code:add_patha(FixturesPath),
-  yamerl_app:set_param(node_mods, [yamerl_node_erlang_atom]),
   {ok, Filenames} = file:list_dir(FixturesPath),
-  [read_fixture(FixturesPath, Filename) || Filename <- Filenames, filename:extension(Filename) =:= ".yml"].
+  Fixtures = [read_fixture(FixturesPath, Filename) || Filename <- Filenames, filename:extension(Filename) =:= ".yml"],
+  Discovered = discover_refs(Fixtures),
+  lager:debug("Fixtures loaded: ~p", [Discovered]).
+
 
 apply(Fixtures) ->
   CS = "DSN=oraxe;UID=SSO;PWD=sso",
@@ -57,5 +59,26 @@ read_fixture(Filepath, Filename) ->
       Compiled = mustache:compile(binary_to_list(Content)),
       mustache:render(undefined, Compiled)
   end,
-  {Module, yamerl_constr:string(Render, [{erlang_atom_autodetection, true}])}.
+  {ok, [Y]} = yaml:load(list_to_binary(Render), [implicit_atoms]),
+  {Module, Y}.
+
+discover_refs(Fixtures) ->
+  [{Table, scan_entities(Entities, Fixtures)} || {Table, Entities} <- Fixtures].
+
+scan_entities(Entities, Fixtures) ->
+  [{Name, scan_attrs(Attrs, Fixtures)} || {Name, Attrs} <- Entities, is_atom(Name)].
+
+scan_attrs(Attrs, Fixtures) ->
+  [{Name, proc_attr(Value, Fixtures)} || {Name, Value} <- Attrs].
+
+proc_attr(Value = [{_, _},{_, _},{_, _}], Fixtures) ->
+  F = proplists:get_value(fixture, Value),
+  E = proplists:get_value(entity, Value),
+  R = proplists:get_value(ref, Value),
+  Entities = proplists:get_value(F, Fixtures),
+  Attrs = proplists:get_value(E, Entities),
+  proplists:get_value(R, Attrs);
+
+proc_attr(Value, _) ->
+  Value.
 

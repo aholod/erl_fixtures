@@ -1,0 +1,45 @@
+---
+
+_asur_id: &ASUR_ID
+  fixture: as_users
+  ref: asur_id
+
+dimon_disp_name:
+  asua_id: 11111
+  asur_asur_id:
+    entity: dimon
+    <<: *ASUR_ID
+  asat_asat_id: 1
+  asat_asdp_id: null
+  value: 'Administrator'
+  description: null
+  priority: 0
+  navi_user: 'sso'
+  navi_date: '2017-06-26 11:45:19'
+  del_user: null
+  del_date: null
+  resolution_time: '2017-06-26 11:45:19'
+  local_actual_time: '2017-06-26 11:45:19'
+
+msidn_dimon: &msisdn01
+  asua_id: 2222
+  asur_asur_id:
+    entity: dimon
+    <<: *ASUR_ID
+  asat_asat_id: 1
+  asat_asdp_id: null
+  value: '9117854940'
+  description: null
+  priority: 0
+  navi_user: 'sso'
+  navi_date: '2017-06-26 11:45:19'
+  del_user: null
+  del_date: null
+  resolution_time: '2017-06-26 11:45:19'
+  local_actual_time: '2017-06-26 11:45:19'
+
+msisdn_admin:
+  <<: *msisdn01
+  asur_asur_id:
+    entity: admin
+    <<: *ASUR_ID
