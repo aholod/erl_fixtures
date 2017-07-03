@@ -11,9 +11,7 @@ load(FixturesPath) ->
   code:add_patha(FixturesPath),
   {ok, Filenames} = file:list_dir(FixturesPath),
   Fixtures = [read_fixture(FixturesPath, Filename) || Filename <- Filenames, filename:extension(Filename) =:= ".yml"],
-  Discovered = discover_refs(Fixtures),
-  lager:debug("Fixtures loaded: ~p", [Discovered]).
-
+  discover_refs(Fixtures).
 
 apply(Fixtures) ->
   CS = "DSN=oraxe;UID=SSO;PWD=sso",
@@ -28,21 +26,20 @@ apply(Fixtures) ->
   {_, _, DisableConstraints} = odbc:sql_query(Ref, DisableConstraintsGen),
   {_, _, EnableConstraints} = odbc:sql_query(Ref, EnableConstraintsGen),
   [odbc:sql_query(Ref, Query) || {Query} <- DisableConstraints],
-
+  % lager:debug("Fixtures before transform: ~p", [Fixtures]),
   FixturesTransformed = lists:foldl(
     fun(Elem, Acc)->
         {Table, Params} = Elem,
-        NamedParams = lists:map(fun({_, Param}) -> {Table, Param} end, lists:flatten(Params)),
+        NamedParams = lists:map(fun({_, Param}) -> {Table, Param} end, Params),
         lists:append(Acc, NamedParams)
     end,
     [], Fixtures),
 
   [odbc:sql_query(Ref, lists:append("truncate table ", atom_to_list(Table))) || {Table, _} <- FixturesTransformed],
   Queries = [sqerl:sql({insert, Table, Values}, true) || {Table, Values} <- FixturesTransformed],
-  % [erlang:display(binary_to_list(Q)) || Q <- Queries],
+  % [lager:debug("Ready query: ~p", [binary_to_list(Q)]) || Q <- Queries],
   [odbc:sql_query(Ref, binary_to_list(Query)) || Query <- Queries],
   [odbc:sql_query(Ref, Query) || {Query} <- EnableConstraints].
-
 
 %%====================================================================
 %% Internal functions
