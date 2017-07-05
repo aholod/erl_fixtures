@@ -1,7 +1,7 @@
 -module(fixtures).
 
 %% API exports
--export([load/1, apply/1]).
+-export([load/1, apply/1, get_table/2, get_entity/2, get_entity/3]).
 
 %%====================================================================
 %% API functions
@@ -41,6 +41,31 @@ apply(Fixtures) ->
   [odbc:sql_query(Ref, binary_to_list(Query)) || Query <- Queries],
   [odbc:sql_query(Ref, Query) || {Query} <- EnableConstraints].
 
+get_table(TableName, Fixtures) ->
+  case proplists:get_value(TableName, Fixtures) of
+    undefined ->
+      throw({table_not_found, TableName});
+    Table ->
+      Table
+  end.
+
+
+get_entity(TableName, EntityName, Fixtures) ->
+  Table = get_table(TableName, Fixtures),
+  case proplists:get_value(EntityName, Table) of
+    undefined ->
+      throw({entity_not_found, EntityName, TableName});
+    Entity ->
+      Entity
+  end.
+
+get_entity(EntityName, Table) ->
+  case proplists:get_value(EntityName, Table) of
+    undefined ->
+      throw({entity_not_found, EntityName});
+    Entity ->
+      Entity
+  end.
 %%====================================================================
 %% Internal functions
 %%====================================================================
